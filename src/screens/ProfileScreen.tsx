@@ -1,388 +1,168 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  ScrollView,
   TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {Card} from '../components/ui/Card';
-import {Input} from '../components/ui/Input';
-import {Button} from '../components/ui/Button';
-import {colors} from '../constants/colors';
-import {storage} from '../services/storage';
 
-const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const [isEditing, setIsEditing] = useState(false);
-  const [userData, setUserData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 234-567-8900',
-    dateOfBirth: '1990-01-15',
-    country: 'United States',
-    address: '123 Main Street',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-  });
+interface MenuItem {
+  icon: string;
+  title: string;
+  description: string;
+  route: string;
+}
 
-  useEffect(() => {
-    loadUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+interface ProfileScreenProps {
+  navigation?: any;
+}
 
-  const loadUserData = async () => {
-    const data = await storage.getUserData();
-    if (data) {
-      setUserData({...userData, ...data});
-    }
-  };
+const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
+  const menuItems: MenuItem[] = [
+    {
+      icon: '💼',
+      title: 'Pay Bills',
+      description: 'Pay for bills like airtime',
+      route: 'PayBills',
+    },
+    {
+      icon: '👤',
+      title: 'Account',
+      description: 'Manage your personal information',
+      route: 'Account',
+    },
+    {
+      icon: '📄',
+      title: 'Transfer History',
+      description: 'View you transfer',
+      route: 'TransferHistory',
+    },
+    {
+      icon: '💳',
+      title: 'Add Card',
+      description: 'Add and manage your cards',
+      route: 'AddCard',
+    },
+    {
+      icon: '🛡️',
+      title: 'Settings',
+      description: 'Device settings and security',
+      route: 'Settings',
+    },
+    {
+      icon: '❓',
+      title: 'Support',
+      description: 'Find answers to your queries',
+      route: 'Support',
+    },
+    {
+      icon: 'ℹ️',
+      title: 'Legal Documents',
+      description: 'Legal notices and agreements',
+      route: 'LegalDocuments',
+    },
+  ];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile Settings</Text>
-        <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-          <Text style={styles.editButton}>{isEditing ? 'Cancel' : 'Edit'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Profile Header */}
-      <Card style={styles.profileCard}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>JD</Text>
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>
-              {userData.firstName} {userData.lastName}
-            </Text>
-            <Text style={styles.profileEmail}>{userData.email}</Text>
-            <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedText}>✓ Verified Account</Text>
-            </View>
-          </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={styles.username}>Username</Text>
+          <Text style={styles.email}>Useremail@gmail.com</Text>
+          <Text style={styles.phone}>+91 67483xxxx</Text>
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Account Status</Text>
-            <Text style={styles.statValue}>Active</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Member Since</Text>
-            <Text style={styles.statValue}>March 2024</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Verification</Text>
-            <Text style={styles.statValue}>Advanced</Text>
-          </View>
-        </View>
-      </Card>
-
-      {/* Personal Information */}
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-
-        <View style={styles.nameRow}>
-          <View style={styles.nameInput}>
-            <Input
-              label="First Name"
-              value={userData.firstName}
-              onChangeText={text => setUserData({...userData, firstName: text})}
-              editable={isEditing}
-            />
-          </View>
-          <View style={styles.nameInput}>
-            <Input
-              label="Last Name"
-              value={userData.lastName}
-              onChangeText={text => setUserData({...userData, lastName: text})}
-              editable={isEditing}
-            />
-          </View>
-        </View>
-
-        <Input
-          label="Email"
-          value={userData.email}
-          onChangeText={text => setUserData({...userData, email: text})}
-          editable={isEditing}
-          keyboardType="email-address"
-        />
-
-        <Input
-          label="Phone"
-          value={userData.phone}
-          onChangeText={text => setUserData({...userData, phone: text})}
-          editable={isEditing}
-          keyboardType="phone-pad"
-        />
-
-        <Input
-          label="Date of Birth"
-          value={userData.dateOfBirth}
-          onChangeText={text => setUserData({...userData, dateOfBirth: text})}
-          editable={isEditing}
-        />
-      </Card>
-
-      {/* Address Information */}
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Address Information</Text>
-
-        <Input
-          label="Country"
-          value={userData.country}
-          onChangeText={text => setUserData({...userData, country: text})}
-          editable={isEditing}
-        />
-
-        <Input
-          label="Address"
-          value={userData.address}
-          onChangeText={text => setUserData({...userData, address: text})}
-          editable={isEditing}
-        />
-
-        <View style={styles.addressRow}>
-          <View style={styles.addressInput}>
-            <Input
-              label="City"
-              value={userData.city}
-              onChangeText={text => setUserData({...userData, city: text})}
-              editable={isEditing}
-            />
-          </View>
-          <View style={styles.addressInput}>
-            <Input
-              label="State"
-              value={userData.state}
-              onChangeText={text => setUserData({...userData, state: text})}
-              editable={isEditing}
-            />
-          </View>
-          <View style={styles.addressInput}>
-            <Input
-              label="Zip Code"
-              value={userData.zipCode}
-              onChangeText={text => setUserData({...userData, zipCode: text})}
-              editable={isEditing}
-            />
-          </View>
-        </View>
-      </Card>
-
-      {/* Save Button */}
-      {isEditing && (
-        <View style={styles.saveContainer}>
-          <Button
-            title="Save Changes"
+        {/* Menu Items */}
+        {menuItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.menuItem}
             onPress={() => {
-              setIsEditing(false);
-              // Save to storage/API
-            }}
-            style={styles.saveButton}
-          />
-        </View>
-      )}
-
-      {/* Documents */}
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Documents</Text>
-        {[
-          {name: 'ID Verification', status: 'verified', date: '2024-03-15'},
-          {name: 'Address Proof', status: 'verified', date: '2024-03-15'},
-          {name: 'Bank Statement', status: 'verified', date: '2024-09-01'},
-        ].map((doc, index) => (
-          <View key={index} style={styles.documentItem}>
-            <View>
-              <Text style={styles.documentName}>{doc.name}</Text>
-              <Text style={styles.documentDate}>Verified on {doc.date}</Text>
+              if (item.route === 'Account') {
+                navigation?.navigate('AccountManage');
+              } else {
+                navigation?.navigate(item.route);
+              }
+            }}>
+            <View style={styles.menuIcon}>
+              <Text style={styles.iconText}>{item.icon}</Text>
             </View>
-            <View style={styles.verifiedBadgeSmall}>
-              <Text style={styles.verifiedTextSmall}>
-                {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-              </Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>{item.title}</Text>
+              <Text style={styles.menuDescription}>{item.description}</Text>
             </View>
-          </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
         ))}
-      </Card>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray[50],
+    backgroundColor: '#FFFFFF',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
+  userInfo: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
   },
-  backButton: {
-    marginRight: 16,
-  },
-  backIcon: {
-    fontSize: 24,
-    color: colors.gray[600],
-  },
-  headerTitle: {
-    fontSize: 24,
+  username: {
+    fontSize: 28,
     fontWeight: '700',
-    color: colors.primary,
-    flex: 1,
-  },
-  editButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  profileCard: {
-    margin: 20,
-    marginBottom: 0,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.blue[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.white,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.dark,
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: colors.gray[600],
+    color: '#1E3A8A',
     marginBottom: 8,
   },
-  verifiedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.success + '20',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  verifiedText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.success,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statItem: {
-    flex: 1,
-    backgroundColor: colors.gray[50],
-    padding: 12,
-    borderRadius: 12,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.gray[600],
+  email: {
+    fontSize: 16,
+    color: '#6C7A89',
     marginBottom: 4,
   },
-  statValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.dark,
-  },
-  card: {
-    margin: 20,
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.dark,
-    marginBottom: 20,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  nameInput: {
-    flex: 1,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  addressInput: {
-    flex: 1,
-  },
-  saveContainer: {
-    padding: 20,
-  },
-  saveButton: {
-    marginTop: 0,
-  },
-  documentItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.gray[50],
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  documentName: {
+  phone: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.dark,
+    color: '#6C7A89',
   },
-  documentDate: {
-    fontSize: 12,
-    color: colors.gray[600],
-    marginTop: 4,
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
-  verifiedBadgeSmall: {
-    backgroundColor: colors.success + '20',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+  menuIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1E3A8A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
   },
-  verifiedTextSmall: {
-    fontSize: 12,
+  iconText: {
+    fontSize: 24,
+  },
+  menuTextContainer: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: colors.success,
+    color: '#2C3E50',
+    marginBottom: 4,
+  },
+  menuDescription: {
+    fontSize: 14,
+    color: '#6C7A89',
+  },
+  chevron: {
+    fontSize: 20,
+    color: '#D1D5DB',
   },
 });
 
 export default ProfileScreen;
+

@@ -2,58 +2,37 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {Input} from '../../components/ui/Input';
-import {Button} from '../../components/ui/Button';
-import {Card} from '../../components/ui/Card';
-import {colors} from '../../constants/colors';
 import {authAPI} from '../../services/api';
 import {storage} from '../../services/storage';
-
-const EyeIcon = ({visible}: {visible: boolean}) => (
-  <Text style={{fontSize: 18}}>{visible ? '👁️' : '👁️‍🗨️'}</Text>
-);
 
 interface LoginScreenProps {
   updateAuthState?: (authenticated: boolean) => void;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({updateAuthState}) => {
-  const navigation = useNavigation();
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({email: '', password: ''});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (field: string, value: string) => {
-    setFormData({...formData, [field]: value});
-    setError('');
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await authAPI.login(formData);
-      await storage.setAuthToken(response.token);
-      await storage.setUserData(response.user);
-      updateAuthState?.(true);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
-      setLoading(false);
+  const handleLogin = async () => {
+    if (email && password) {
+      try {
+        const response = await authAPI.login({email, password});
+        await storage.setAuthToken(response.token);
+        await storage.setUserData(response.user);
+        if (updateAuthState) {
+          updateAuthState(true);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        // TODO: Show error message to user
+      }
     }
   };
 
@@ -63,98 +42,56 @@ const LoginScreen: React.FC<LoginScreenProps> = ({updateAuthState}) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.logo}>💸</Text>
-          <Text style={styles.title}>Welcome back to QuickBank</Text>
-          <Text style={styles.subtitle}>
-            Sign in to manage transfers, wallets, and recipients across 150+
-            countries.
-          </Text>
-        </View>
+        keyboardShouldPersistTaps="handled">
+        {/* Title */}
+        <Text style={styles.title}>Quick Bank</Text>
 
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Sign in to QuickBank</Text>
-          <Text style={styles.cardSubtitle}>
-            Manage your transfers, rate alerts, and trusted recipients in
-            seconds.
-          </Text>
-
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-
-          <Input
-            label="Email address"
-            placeholder="you@example.com"
-            value={formData.email}
-            onChangeText={text => handleChange('email', text)}
+        {/* Input Fields */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#6B7280"
+            value={email}
+            onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            autoComplete="email"
+            autoCorrect={false}
           />
 
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChangeText={text => handleChange('password', text)}
-            secureTextEntry={!showPassword}
-            rightIcon={<EyeIcon visible={showPassword} />}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-          />
-
-          <TouchableOpacity
-            onPress={() => {
-              // Navigate to forgot password
-            }}
-            style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-          </TouchableOpacity>
-
-          <Button
-            title="Sign In"
-            onPress={handleSubmit}
-            loading={loading}
-            style={styles.button}
-          />
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialButtons}>
-            <Button
-              title="Google"
-              onPress={() => {}}
-              variant="outline"
-              style={styles.socialButton}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#6B7280"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
             />
-            <Button
-              title="Facebook"
-              onPress={() => {}}
-              variant="outline"
-              style={styles.socialButton}
-            />
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Signup' as never)}>
-              <Text style={styles.footerLink}>Sign up now</Text>
+            <TouchableOpacity style={styles.forgotButton}>
+              <Text style={styles.forgotText}>Forgot?</Text>
             </TouchableOpacity>
           </View>
-        </Card>
+        </View>
 
-        <View style={styles.securityNote}>
-          <Text style={styles.securityText}>
-            🔒 Your login is protected with bank-level encryption
-          </Text>
+        {/* Log In Button */}
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={handleLogin}
+          activeOpacity={0.8}>
+          <Text style={styles.loginButtonText}>Log In</Text>
+        </TouchableOpacity>
+
+        {/* Bottom Links */}
+        <View style={styles.bottomLinks}>
+          <TouchableOpacity>
+            <Text style={styles.linkText}>Open Account</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cookieLink}>
+            <Text style={styles.linkText}>Update Cookie Settings</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -164,121 +101,77 @@ const LoginScreen: React.FC<LoginScreenProps> = ({updateAuthState}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray[50],
+    backgroundColor: '#4A69BD',
   },
   scrollContent: {
-    padding: 20,
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
     paddingTop: 60,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logo: {
-    fontSize: 64,
-    marginBottom: 16,
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    color: colors.dark,
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 60,
   },
-  subtitle: {
-    fontSize: 16,
-    color: colors.gray[600],
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  card: {
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.dark,
-    marginBottom: 8,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: colors.gray[600],
+  inputContainer: {
+    width: '100%',
     marginBottom: 24,
   },
-  errorContainer: {
-    backgroundColor: colors.error + '10',
-    padding: 12,
+  input: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#1F2937',
     marginBottom: 16,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 14,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  button: {
-    marginBottom: 24,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.gray[200],
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.gray[400],
-    letterSpacing: 2,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  socialButton: {
-    flex: 1,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: colors.gray[600],
-  },
-  footerLink: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  securityNote: {
-    backgroundColor: colors.white,
-    padding: 16,
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.gray[200],
-    marginTop: 20,
+    borderColor: '#E5E7EB',
   },
-  securityText: {
+  passwordContainer: {
+    position: 'relative',
+  },
+  forgotButton: {
+    position: 'absolute',
+    right: 16,
+    top: 14,
+    zIndex: 1,
+  },
+  forgotText: {
     fontSize: 14,
-    color: colors.gray[600],
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  loginButton: {
+    backgroundColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 40,
+  },
+  loginButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  bottomLinks: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  linkText: {
+    fontSize: 14,
+    color: '#6B7280',
     textAlign: 'center',
+  },
+  cookieLink: {
+    marginTop: 8,
   },
 });
 
 export default LoginScreen;
+
